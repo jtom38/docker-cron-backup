@@ -6,6 +6,4 @@ RUN apt update \
     && mkdir /scripts /backup 
 
 COPY ./scripts /scripts
-RUN chmod +x /scripts/backup.sh \
-    && chmod +x /scripts/backup.py \
-    && chmod +x /scripts/debug.sh
+RUN chmod +x /scripts/backup.py 

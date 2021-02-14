@@ -9,6 +9,8 @@
 #   Example: "https://discord.com/api/webhooks/..."
 # BACKUP_USERNAME   = Defines the user that will post the backup status to Discord
 #   Example: "Kubernetes"
+# BACKUP_GEN_JOB_DIR = If enabled, it will check to see if a directory exists inside of `BACKUP_DEST` that contains the name of `BACKUP_JOB`.  If the directory does not exists, it will generate it for you.
+#   Example: true
 
 import os
 import tarfile
@@ -111,32 +113,31 @@ if maxAge == '':
 else:
   maxAge = int(maxAge)
 
-debug           = checkEnvValues('BACKUP_DEBUG')
-if debug == '':
-  debug = False
-else:
-  debug = bool(debug)
+genBackupDir: bool = bool(checkEnvValues('BACKUP_GEN_JOB_DIR'))
+if genBackupDir == True:
+  if dest.endswith('/') == True:
+    dest = f"{dest}{job}"
+  else:
+    dest = f"{dest}/{job}"
+  
+  if os.path.exists(dest) == False:
+    os.mkdir(dest)
 
-# Output to stdout if told to do so.
+debug           = bool(checkEnvValues('BACKUP_DEBUG'))
 if debug == True:
+  # Output to stdout if told to do so.
   print(f'Debug Mode = True')
-  print(f'job: {job}')
+  print(f'BACKUP_JOB: {job}')
   destExists = os.path.exists(dest)
-  print(f"dest: {dest} | Exists: {destExists}")
+  print(f"BACKUP_GEN_JOB_DIR: {genBackupDir}")
+  print(f"BACKUP_DEST: {dest} | Exists: {destExists}")
   sourceExists = os.path.exists(source)
-  print(f"source: {source} | Exists: {sourceExists}")
-  print(f"webhook: {webhook}")
-  print(f"username: {username}")
-  print(f"maxAgeDays = {maxAge}")
+  print(f"BACKUP_SOURCE: {source} | Exists: {sourceExists}")
+  print(f"BACKUP_WEBHOOK: {webhook}")
+  print(f"BACKUP_USERNAME: {username}")
+  print(f"BACKUP_MAXAGEDAYS: {maxAge}")
   print('')
 
-# Checking to make sure the path
-if os.path.exists(dest) == False:
-  print(f"The requested path of '{dest}' was not found.  Job has stopped.")
-  exit()
-if os.path.exists(source) == False:
-  print(f"The requested path of '{source}' was not found.  Job has stopped.")
-  exit()
 
 dt = datetime.now().strftime("%m%d%Y.%H%M%S")
 tarFile: str = f"{dest}/{job}-{dt}.tar.gz"
